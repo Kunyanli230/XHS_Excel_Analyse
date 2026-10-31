@@ -194,6 +194,38 @@ def test_clear_bands_are_tagged_from_the_dominant_metric() -> None:
     assert "点击率" in scored["高"]["sentence"]
 
 
+def test_bilingual_category_and_flag_matching_in_scoring() -> None:
+    talents = [
+        _person("美妆新号", content_type="Beauty", is_new_kol="Y", ctr=0.12),
+        _person("穿搭老号", content_type="Fashion", is_new_kol="N", ctr=0.04),
+    ]
+    policy = {
+        "criteria": [
+            {
+                "field": "content_type",
+                "operator": "contains",
+                "value": "美妆",
+                "hard": False,
+                "weight": 0.5,
+                "reason": "美妆护肤垂类优先",
+            },
+            {
+                "field": "is_new_kol",
+                "operator": "eq",
+                "value": "是",
+                "hard": False,
+                "weight": 0.5,
+                "reason": "新达人优先",
+            },
+        ]
+    }
+    scored = {item["nickname"]: item for item in score_candidates(talents, policy)}
+    assert scored["美妆新号"]["score"] == 1.0
+    assert scored["美妆新号"]["band"] == "clear_yes"
+    assert scored["穿搭老号"]["score"] == 0.0
+    assert scored["穿搭老号"]["band"] == "clear_no"
+
+
 def test_fixture_splits_three_bands_and_dedupes_agency_pair() -> None:
     report = LoadReport()
     loaded = [

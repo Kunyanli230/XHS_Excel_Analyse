@@ -97,16 +97,49 @@ def clean_talents(talents: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [clean_talent(talent) for talent in talents]
 
 
+_VALUE_ALIASES: dict[str, tuple[str, ...]] = {
+    "beauty": ("beauty", "美妆", "护肤", "美妆护肤"),
+    "美妆": ("beauty", "美妆", "护肤", "美妆护肤"),
+    "护肤": ("beauty", "美妆", "护肤", "美妆护肤"),
+    "美妆护肤": ("beauty", "美妆", "护肤", "美妆护肤"),
+    "lifestyle": ("lifestyle", "生活", "生活方式"),
+    "生活": ("lifestyle", "生活", "生活方式"),
+    "生活方式": ("lifestyle", "生活", "生活方式"),
+    "fashion": ("fashion", "时尚", "穿搭"),
+    "时尚": ("fashion", "时尚", "穿搭"),
+    "穿搭": ("fashion", "时尚", "穿搭"),
+    "mother&baby": ("mother&baby", "母婴", "亲子"),
+    "母婴": ("mother&baby", "母婴", "亲子"),
+    "food": ("food", "美食"),
+    "美食": ("food", "美食"),
+    "y": ("y", "yes", "true", "是"),
+    "是": ("y", "yes", "true", "是"),
+    "n": ("n", "no", "false", "否"),
+    "否": ("n", "no", "false", "否"),
+}
+
+
+def _candidate_forms(text: Any) -> tuple[str, ...]:
+    folded = str(text or "").strip().casefold()
+    if not folded:
+        return ("",)
+    return _VALUE_ALIASES.get(folded, (folded,))
+
+
 def _same(raw: Any, value: Any) -> bool:
     if _is_number(raw) and _is_number(value):
         return float(raw) == float(value)
-    return str(raw or "").casefold() == str(value or "").casefold()
+    raw_forms = set(_candidate_forms(raw))
+    val_forms = set(_candidate_forms(value))
+    return bool(raw_forms & val_forms)
 
 
 def _contains(raw: Any, value: Any) -> bool:
     if raw is None or value is None:
         return False
-    return str(value).casefold() in str(raw).casefold()
+    raw_forms = _candidate_forms(raw)
+    val_forms = _candidate_forms(value)
+    return any(vf and vf in rf for rf in raw_forms for vf in val_forms)
 
 
 def _is_in(raw: Any, value: Any) -> bool:
