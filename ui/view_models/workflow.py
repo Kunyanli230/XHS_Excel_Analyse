@@ -79,6 +79,8 @@ class WorkflowView:
     message: str = ""
     error: str | None = None
     busy: bool = False
+    retry_available: bool = False
+    replan_available: bool = False
 
 
 def map_workflow(context: RunContext | None) -> WorkflowView:
@@ -133,17 +135,21 @@ def map_workflow(context: RunContext | None) -> WorkflowView:
             thread_id=context.thread_id,
             message="交付表已生成",
             error=context.last_error,
+            advice_review=map_advice_review(context.latest_state),
         )
     portfolio_error = context.latest_state.get("portfolio_error")
     error = context.last_error
     if isinstance(portfolio_error, dict):
-        error = str(portfolio_error.get("message") or portfolio_error.get("type") or error or "需要补充信息")
+        error = "投放方案需要调整"
     return WorkflowView(
         phase=RunPhase.ACTION_REQUIRED,
         run_id=context.run_id,
         thread_id=context.thread_id,
-        message="需要处理",
+        message="暂未形成可执行方案" if not context.latest_state.get("recommendations") else "等待重试",
         error=error,
+        advice_review=map_advice_review(context.latest_state) if context.latest_state.get("audited_talents") else None,
+        retry_available=status in {"export_failed", "advice_generating", "portfolio_generating", "portfolio_repricing"},
+        replan_available=status != "export_failed" and not context.latest_state.get("recommendations"),
     )
 
 

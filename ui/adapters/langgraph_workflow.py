@@ -10,12 +10,9 @@ from langgraph.types import Command
 
 from agent.graph import build_graph
 from agent.llm_routing import ModuleLLMClients
+from ui.models.errors import WorkflowConflictError
 from ui.models.run import RunContext, RunFiles
 from ui.view_models.workflow import ClientAnswer, PolicyDecision
-
-
-class WorkflowConflictError(RuntimeError):
-    pass
 
 
 class LangGraphWorkflowAdapter:
@@ -38,7 +35,7 @@ class LangGraphWorkflowAdapter:
             audit_llm_client=clients.audit,
             portfolio_llm_client=clients.portfolio,
             advice_llm_client=clients.advice,
-            advice_output_dir=files.run_dir,
+            enable_portfolio=False,
         )
         thread_id = self.thread_factory()
         config = {

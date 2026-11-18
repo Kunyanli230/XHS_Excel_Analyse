@@ -10,12 +10,14 @@ def render_upload_form(view: WorkflowView) -> UploadInput | None:
         "投放需求单",
         type=["xlsx"],
         key="brief_upload",
+        max_upload_size=20,
         disabled=view.busy,
     )
     talents = st.file_uploader(
         "达人数据",
         type=["xlsx"],
         key="talent_upload",
+        max_upload_size=20,
         disabled=view.busy,
     )
     submitted = st.button(

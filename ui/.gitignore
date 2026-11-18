@@ -1,0 +1,3 @@
+tests/.artifacts/
+tests/baseline.txt
+tests/latest.txt

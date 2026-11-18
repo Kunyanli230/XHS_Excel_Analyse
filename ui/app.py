@@ -17,11 +17,18 @@ RUN_ROOT = ROOT / "tmp" / "ui-runs"
 
 
 def build_service() -> WorkflowService:
+    """为当前浏览器会话装配工作流服务。"""
     return WorkflowService(
         RunUploadStore(RUN_ROOT),
         LangGraphWorkflowAdapter(),
         StreamlitRunStore(st.session_state),
     )
+
+
+def render_app() -> None:
+    """渲染唯一的工作流入口。"""
+    apply_theme()
+    render(build_service())
 
 
 st.set_page_config(
@@ -30,5 +37,4 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
-apply_theme()
-render(build_service())
+st.navigation([st.Page(render_app, title="达人投放分析", default=True)], position="hidden").run()
